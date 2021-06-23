@@ -42,7 +42,7 @@ def checkOverlap(min_x, max_x, min_y, max_y, point, xyz):
     j = point[1]
     if ( (i<min_x or i>max_x) or (j < min_y or j > max_y)):
         return True
-    return not isPointWithinRange(point, xyz, 5)
+    return not isPointWithinRange(point, xyz, 3)
 
 
 potholes = glob.glob("../rethinking_road_reconstruction_pothole_detection/dataset/model1/gt/*.ply")
@@ -62,7 +62,7 @@ for pothole_filename in potholes:
     max_z = max(pothole[:,2])
     shift_z = z - max_z - 1
     pothole += [0, 0, shift_z]
-    pothole += [ randrange(-int(width/3),int(width/3)),  randrange(-int(height/3),int(height/3)), 0 ]
+    pothole += [ randrange(-int(width/4),int(width/4)),  randrange(-int(height/4),int(height/4)), 0 ]
     savePointCloud("intermediate_files/pothole.ply", pothole)
 
     #Find bounding box of pothole
