@@ -1,8 +1,11 @@
 from plyfile import PlyData, PlyElement
 import numpy as np
 import open3d as o3d
-from random import randrange, uniform
+from random import randrange, uniform, seed
+from datetime import datetime
 import glob
+
+seed(datetime.now())
 
 def readPointCloud(filename):
     with open(filename, 'rb') as f:
@@ -45,7 +48,7 @@ def checkOverlap(min_x, max_x, min_y, max_y, point, xyz):
     return not isPointWithinRange(point, xyz, 3)
 
 
-potholes = glob.glob("../rethinking_road_reconstruction_pothole_detection/dataset/model1/gt/*.ply")
+potholes = glob.glob("../rethinking_road_reconstruction_pothole_detection/dataset/model2/gt/*.ply")
 
 for pothole_filename in potholes:
     pothole = readPointCloud(pothole_filename)
