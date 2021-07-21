@@ -15,9 +15,11 @@ def readPointCloud(filename):
     vertices = [ [vert[0], vert[1], vert[2]] for vert in vertices ]  
     return np.asarray(vertices, dtype=np.float32)
 
-def savePointCloud(filename, xyz):
+def savePointCloud(filename, xyz, colors=None):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(xyz)
+    if(colors is not None):
+        pcd.colors = colors
     o3d.io.write_point_cloud(filename, pcd)
 
 def downSamplePointCloud(xyz, mvoxel_size):
@@ -89,9 +91,13 @@ for pothole_filename in potholes:
 
     print("Finalizing...")    
     label_pothole = np.ones(pothole.shape[0])
+    color_pothole = [ [1, 0, 0] for i in range(pothole.shape[0])]
     label_road = np.zeros(road.shape[0])
+    color_road = [ [0, 0, 1] for i in range(pothole.shape[0])]
+
     final_xyz = np.concatenate( (pothole, road), axis=0)    
     final_labels = np.concatenate( (label_pothole, label_road), axis=0)    
+    final_colors = np.concatenate( (color_pothole, color_road), axis=0)
 
     print("Saving to disk...") 
     np.savetxt("intermediate_files/label.txt", final_labels, fmt="%1.1d")
@@ -99,3 +105,7 @@ for pothole_filename in potholes:
 
     savePointCloud("intermediate_files/final.ply", final_xyz)
     savePointCloud("completed_potholes/" + pothole_filename.split('/')[-1], final_xyz)
+
+
+    savePointCloud("intermediate_files/colored_final.ply", final_xyz, final_colors)
+    savePointCloud("completed_potholes/colored_" + pothole_filename.split('/')[-1], final_xyz, final_colors)
