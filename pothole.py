@@ -51,8 +51,8 @@ def checkOverlap(min_x, max_x, min_y, max_y, point, xyz):
 potholes = glob.glob("../rethinking_road_reconstruction_pothole_detection/dataset/model2/gt/*.ply")
 
 for pothole_filename in potholes:
-    pothole = readPointCloud(pothole_filename)
     print("Reading filename: " + pothole_filename)
+    pothole = readPointCloud(pothole_filename)
     road = readPointCloud('road.ply')
 
     #Find bounding box of road
@@ -89,13 +89,13 @@ for pothole_filename in potholes:
 
     print("Finalizing...")    
     label_pothole = np.ones(pothole.shape[0])
-    label_road = np.ones(road.shape[0])
+    label_road = np.zeros(road.shape[0])
     final_xyz = np.concatenate( (pothole, road), axis=0)    
     final_labels = np.concatenate( (label_pothole, label_road), axis=0)    
 
     print("Saving to disk...") 
-    np.savetxt("intermediate_files/label.txt", final_labels)
-    np.savetxt("completed_potholes/" + pothole_filename.split('/')[-1][-4] + "label.txt", final_labels)
+    np.savetxt("intermediate_files/label.txt", final_labels, fmt="%1.1d")
+    np.savetxt("completed_potholes/" + pothole_filename.split('/')[-1][:-4] + "_label.txt", final_labels, fmt="%1.1d")
 
     savePointCloud("intermediate_files/final.ply", final_xyz)
     savePointCloud("completed_potholes/" + pothole_filename.split('/')[-1], final_xyz)
