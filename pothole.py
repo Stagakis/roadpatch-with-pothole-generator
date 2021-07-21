@@ -20,10 +20,10 @@ def savePointCloud(filename, xyz):
     pcd.points = o3d.utility.Vector3dVector(xyz)
     o3d.io.write_point_cloud(filename, pcd)
 
-def downSamplePointCloud(xyz):
+def downSamplePointCloud(xyz, mvoxel_size):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(xyz)
-    downpcd = pcd.voxel_down_sample(voxel_size=2)
+    downpcd = pcd.voxel_down_sample(voxel_size=mvoxel_size)
     return np.asarray(downpcd.points)
 
 def boundingBoxXYplane(xyz):
@@ -45,13 +45,14 @@ def checkOverlap(min_x, max_x, min_y, max_y, point, xyz):
     j = point[1]
     if ( (i<min_x or i>max_x) or (j < min_y or j > max_y)):
         return True
-    return not isPointWithinRange(point, xyz, 3)
+    return not isPointWithinRange(point, xyz, 2)
 
 
 potholes = glob.glob("../rethinking_road_reconstruction_pothole_detection/dataset/model2/gt/*.ply")
 
 for pothole_filename in potholes:
     pothole = readPointCloud(pothole_filename)
+    print("Reading filename: " + pothole_filename)
     road = readPointCloud('road.ply')
 
     #Find bounding box of road
@@ -59,8 +60,9 @@ for pothole_filename in potholes:
     z = road[0,2]
 
     #Shift top of hole to align with road and add a little bit of randomness
-    pothole = downSamplePointCloud(pothole) #too many points
-    pothole *= [1, 1, -1] #Flip pothole in the z axis
+    print("Processing pothole file...")
+    pothole *= [1, 1, -1] #Flip pothole in the z axis.
+    pothole = downSamplePointCloud(pothole, 2) #Just too many points, the program takes forever
     pothole = pothole / uniform(1.2,2.0) #The hole is too big
     max_z = max(pothole[:,2])
     shift_z = z - max_z - 1
@@ -71,21 +73,29 @@ for pothole_filename in potholes:
     #Find bounding box of pothole
     pothole_width, pothole_height, min_x, max_x, min_y, max_y = boundingBoxXYplane(pothole)
 
-    #Generate a denser road pointcloud
-    #print("Width: ",width)
-    #print("Height: ",height)
-
-    step = 2
-    #dense_road = [ [i, j, z] for i in range(int(-width/2),int(width/2),step) for j in range(int(-height/2), int(height/2), step) if ( (i<min_x or i>max_x) or (j < min_y or j > max_y))]
+    #Generate dense road pointcloud
+    print("Processing road file...")
+    step = 1
     dense_road = [ [i, j, z] 
     for i in range(int(-width/2),int(width/2),step) 
     for j in range(int(-height/2), int(height/2), step) 
     if ( checkOverlap(min_x, max_x, min_y, max_y, [i,j,z], pothole) )]
-
     dense_road = np.asarray(dense_road, dtype=np.float32)
-    savePointCloud("intermediate_files/dense_road.ply", dense_road)
-    #print(dense_road)
+    road = downSamplePointCloud(dense_road, 2) #to have homogeneous density
 
-    final_xyz = np.concatenate( (pothole, dense_road), axis=0)
+    savePointCloud("intermediate_files/dense_road.ply", dense_road)
+
+
+
+    print("Finalizing...")    
+    label_pothole = np.ones(pothole.shape[0])
+    label_road = np.ones(road.shape[0])
+    final_xyz = np.concatenate( (pothole, road), axis=0)    
+    final_labels = np.concatenate( (label_pothole, label_road), axis=0)    
+
+    print("Saving to disk...") 
+    np.savetxt("intermediate_files/label.txt", final_labels)
+    np.savetxt("completed_potholes/" + pothole_filename.split('/')[-1][-4] + "label.txt", final_labels)
+
     savePointCloud("intermediate_files/final.ply", final_xyz)
     savePointCloud("completed_potholes/" + pothole_filename.split('/')[-1], final_xyz)
