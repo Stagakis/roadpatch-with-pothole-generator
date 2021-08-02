@@ -19,7 +19,8 @@ def savePointCloud(filename, xyz, colors=None):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(xyz)
     if(colors is not None):
-        pcd.colors = colors
+        pcd.paint_uniform_color([1, 1, 1])
+        pcd.colors = o3d.utility.Vector3dVector(colors)
     o3d.io.write_point_cloud(filename, pcd)
 
 def downSamplePointCloud(xyz, mvoxel_size):
@@ -70,7 +71,6 @@ for pothole_filename in potholes:
     shift_z = z - max_z - 1
     pothole += [0, 0, shift_z]
     pothole += [ randrange(-int(width/4),int(width/4)),  randrange(-int(height/4),int(height/4)), 0 ]
-    savePointCloud("intermediate_files/pothole.ply", pothole)
 
     #Find bounding box of pothole
     pothole_width, pothole_height, min_x, max_x, min_y, max_y = boundingBoxXYplane(pothole)
@@ -87,17 +87,15 @@ for pothole_filename in potholes:
 
     savePointCloud("intermediate_files/dense_road.ply", dense_road)
 
-
-
     print("Finalizing...")    
     label_pothole = np.ones(pothole.shape[0])
     color_pothole = [ [1, 0, 0] for i in range(pothole.shape[0])]
     label_road = np.zeros(road.shape[0])
-    color_road = [ [0, 0, 1] for i in range(pothole.shape[0])]
+    color_road = [ [0, 0, 1] for i in range(road.shape[0])]
 
-    final_xyz = np.concatenate( (pothole, road), axis=0)    
-    final_labels = np.concatenate( (label_pothole, label_road), axis=0)    
-    final_colors = np.concatenate( (color_pothole, color_road), axis=0)
+    final_xyz = np.concatenate((pothole, road), axis=0)
+    final_labels = np.concatenate((label_pothole, label_road), axis=0)
+    final_colors = np.concatenate((color_pothole, color_road), axis=0)
 
     print("Saving to disk...") 
     np.savetxt("intermediate_files/label.txt", final_labels, fmt="%1.1d")
