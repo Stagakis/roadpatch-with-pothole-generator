@@ -2,7 +2,7 @@ from plyfile import PlyData, PlyElement
 import numpy as np
 import open3d as o3d
 import glob
-
+from sklearn.metrics import confusion_matrix
 
 
 def readPointCloud(filename):
@@ -13,6 +13,7 @@ def readPointCloud(filename):
 
         pos = [ [vert[0], vert[1], vert[2]] for vert in vertices ]
         colors = [ [vert[3], vert[4], vert[5]] for vert in vertices ]
+
         return np.asarray(pos, dtype=np.float32), np.asarray(colors, dtype=np.uint8)
     else:
         pos = []
@@ -22,7 +23,6 @@ def readPointCloud(filename):
             for line in lines:
                 line_parts = line.replace('\n', '').split(' ')[1:]
                 pos.append([float(line_parts[0]), float(line_parts[1]), float(line_parts[2])])
-                #print(col)
                 col.append([float(line_parts[3]), float(line_parts[4]), float(line_parts[5])])
 
 
@@ -44,7 +44,17 @@ for file in files:
     res_pcl, res_col = readPointCloud(file[:-4] + "_eigen_binary.obj")
 
 
-    for i in range(gt_col.shape[0]):
-        gt = gt_col[i]
-        res = res_col[i]
-        
+    #Calculation of accuracy
+
+    gt = ["hole" if col.tolist() == [255,0,0] else "road" for col in gt_col]
+    res = ["hole" if col.tolist() == [255,0,0] else "road" for col in res_col ]
+    conf = confusion_matrix(gt, res, normalize='true')
+    print(conf)
+    #confusion_matrix(gt_col, res_col)
+
+    #gt = gt_col.tolist()
+    #res = res_col.tolist()
+    #tp = np.sum([gt[i] == res[i] == [255,0,0] for i in range(len(gt))])/np.sum([col == [255,0,0] for col in gt])
+    #tp = np.sum([gt[i] == res[i] == [255,0,0] for i in range(len(gt))])/np.sum([col == [255,0,0] for col in gt])
+    #print("True Positives: ",tp)
+
