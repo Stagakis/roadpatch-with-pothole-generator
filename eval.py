@@ -35,19 +35,32 @@ def readPointCloud(filename):
         return pos, col
 
 
+folder = "/home/stagakis/Desktop/road_with_pothole_generation/stereo_pothole_datasets/dataset1/ptcloud/"
+ground_truth_file_name_template = "*original_subsampled.obj"
+result_file_name_template = "*eigen_binary.obj"
 
-ground_truth_file_name_template = "colored_model_*.ply"
-files = glob.glob("completed_potholes/"+ground_truth_file_name_template)
-for file in files:
-    print(file)
-    gt_pcl, gt_col = readPointCloud(file)
-    res_pcl, res_col = readPointCloud(file[:-4] + "_eigen_binary.obj")
+gt_files = glob.glob(folder+ground_truth_file_name_template)
+res_files = glob.glob(folder+result_file_name_template)
+
+gt_files.sort()
+res_files.sort()
+
+for i in range(len(gt_files)):
+#for file in files:
+    gt_file = gt_files[i]
+    res_file = res_files[i]
+
+    print("GroundTruth file: " + gt_file.split("/")[-1])
+    print("Result file:      " + res_file.split("/")[-1])
+
+    gt_pcl, gt_col = readPointCloud(gt_file)
+    res_pcl, res_col = readPointCloud(res_file)
 
 
     #Calculation of accuracy
-
     gt = ["hole" if col.tolist() == [255,0,0] else "road" for col in gt_col]
-    res = ["hole" if col.tolist() == [255,0,0] else "road" for col in res_col ]
+    res = ["hole" if col.tolist() == [255,0,0] else "road" for col in res_col]
+
     conf = confusion_matrix(gt, res, normalize='true')
     print(conf)
     #confusion_matrix(gt_col, res_col)
