@@ -1,6 +1,8 @@
 # roadpatch-with-pothole-generator
 This is an automated script to ease the workload of creating potholes for the purpose of inserting them into a Carla map
 
+Included in the repo is also a meshlab script to automate the meshing process of the pointcloud of the pothole for insertion in the Carla map.
+
 ## Dependencies
 
 The code uses the following packages
