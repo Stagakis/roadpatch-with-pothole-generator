@@ -1,6 +1,4 @@
-intermediate_files/
 .idea/
-completed_potholes/
 stereo_pothole_datasets
 test_camera_settings*
 
