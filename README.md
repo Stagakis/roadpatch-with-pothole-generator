@@ -5,7 +5,7 @@ Included in the repo is also a meshlab script to automate the meshing process of
 
 ## Dependencies
 
-The code uses the following packages
+The code uses the following packages and Python3 is required
 - numpy
 - open3d
 - sklearn
